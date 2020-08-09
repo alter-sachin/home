@@ -3,6 +3,8 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, abort, \
     send_from_directory
 from werkzeug.utils import secure_filename
+import random
+import string
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
@@ -17,6 +19,10 @@ def validate_image(stream):
         return None
     return '.' + (format if format != 'jpeg' else 'jpg')
 
+def generate_random_string(length):
+    letters = string.ascii_lowercase + string.ascii_uppercase
+    return ''.join(random.choice(letters) for i in range(length))
+
 @app.errorhandler(413)
 def too_large(e):
     return "File is too large", 413
@@ -25,6 +31,21 @@ def too_large(e):
 def index():
     files = os.listdir(app.config['UPLOAD_PATH'])
     return render_template('index.html', files=files)
+
+
+@app.route('/camera', methods=['GET', 'POST'])
+def camera():
+    if request.method == 'POST':
+        file = request.files['source']
+        path = './uploads/' + generate_random_string(6) + '.jpeg'
+        file.save(path)
+        #starter = file.find(',')
+        #image_data = file[starter+1:]
+        #image_data = bytes(image_data, encoding="ascii")
+        #with open('.../image.jpg', 'wb') as fh:
+        #    fh.write(base64.decodebytes(image_data))
+        return 'ok'
+    return 'error'
 
 @app.route('/', methods=['POST'])
 def upload_files():
