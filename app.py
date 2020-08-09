@@ -3,7 +3,9 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, abort, \
     send_from_directory
 from werkzeug.utils import secure_filename
-import jsonify
+import random
+import string
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
@@ -17,6 +19,10 @@ def validate_image(stream):
     if not format:
         return None
     return '.' + (format if format != 'jpeg' else 'jpg')
+
+def generate_random_string(length):
+    letters = string.ascii_lowercase + string.ascii_uppercase
+    return ''.join(random.choice(letters) for i in range(length))
 
 @app.errorhandler(413)
 def too_large(e):
@@ -32,7 +38,10 @@ def index():
 def camera():
     if request.method == 'POST':
         file = request.files['source']
-        print(file)
+
+        path = './uploads/' + generate_random_string(6) + '.jpeg'
+        file.save(path)
+
         #starter = file.find(',')
         #image_data = file[starter+1:]
         #image_data = bytes(image_data, encoding="ascii")
