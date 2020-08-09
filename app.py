@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import random
 import string
 
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
@@ -37,8 +38,10 @@ def index():
 def camera():
     if request.method == 'POST':
         file = request.files['source']
+
         path = './uploads/' + generate_random_string(6) + '.jpeg'
         file.save(path)
+
         #starter = file.find(',')
         #image_data = file[starter+1:]
         #image_data = bytes(image_data, encoding="ascii")
