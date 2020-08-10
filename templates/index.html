@@ -77,12 +77,6 @@
       top: 0;
     }
 
-    .arrows {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-    }
-
     /* The dots/bullets/indicators */
     .dot {
       cursor: pointer;
@@ -141,29 +135,18 @@
 <body>
   <h1>BuildAR</h1>
 
-  <div style="text-align:center;">
-    <span class="dot" onclick="currentSlide(1)">Step 1</span>
-    <span class="dot" onclick="currentSlide(2)">Step 2</span>
-    <span class="dot" onclick="currentSlide(3)">Step 3</span>
-  </div>
-
   <div class="slideshow-container">
-
-    <div class="arrows">
-      <a class="prev dot" onclick="plusSlides(-1)">&#10094;</a>
-      <a class="next dot" onclick="plusSlides(1)">&#10095;</a>
-    </div>
 
     <div class="mySlides fade">
 
       <h2>Step 1 - Face</h2>
       <h3>Click a photo</h3>
 
-      <div id="camera" style="height:auto;width:auto; text-align:left;"></div>
+      <div id="camera1" style="height:auto;width:auto; text-align:left;"></div>
       <!--FOR THE SNAPSHOT-->
       <form method="POST" enctype="multipart/form-data" id="myForm">
-        <input type="button" value="Take a Snap" id="btPic" onclick="takeSnapShot()" name="userID" name="name" />
-        <p id="snapShot"></p>
+        <input type="button" value="Take a Snap" id="captureButton1" onclick="takeSnapShot(1)">
+        <input type="button" value="Retry" id="retry1" onclick="retry(1)" style="display: none;">
       </form>
 
       <h4>Or</h4>
@@ -171,6 +154,8 @@
       <h3>Upload a photo</h3>
 
       <form action="{{ url_for('upload_files') }}" class="dropzone"></form>
+
+      <a class="next dot" onclick="plusSlides(1)">Ok</a>
 
       <div class="instructions">
         <h3>Click picture of your face</h3>
@@ -185,9 +170,22 @@
     <div class="mySlides fade">
 
       <h2>Step 2 - Body</h2>
+      <h3>Click a photo</h3>
+
+      <div id="camera2" style="height:auto;width:auto; text-align:left;"></div>
+      <!--FOR THE SNAPSHOT-->
+      <form method="POST" enctype="multipart/form-data" id="myForm">
+        <input type="button" value="Take a Snap" id="captureButton2" onclick="takeSnapShot(2)">
+        <input type="button" value="Retry" id="retry2" onclick="retry(2)" style="display: none;">
+      </form>
+
+      <h4>Or</h4>
+
       <h3>Upload a photo</h3>
 
       <form action="{{ url_for('upload_files') }}" class="dropzone"></form>
+
+      <a class="next dot" onclick="plusSlides(1)">Ok</a>
 
       <div class="instructions">
         <h3>Click picture of your body</h3>
@@ -209,6 +207,7 @@
         <button type="submit">Submit</button>
       </form>
     </div>
+
   </div>
 
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
@@ -218,55 +217,56 @@
 </body>
 
 <script>
+
+  var data_uri = ""
+
+  // CAMERA SETTINGS.
+  setWebcam = function (stepNumber) {
+    Webcam.set({
+      width: 850,
+      height: 480,
+      image_format: 'jpeg',
+      jpeg_quality: 100
+    });
+    Webcam.attach('#camera' + stepNumber);
+  }
+
   var slideIndex = 1;
   showSlides(slideIndex);
 
-  function plusSlides(n) {
-    showSlides(slideIndex += n);
-  }
-
-  function currentSlide(n) {
-    showSlides(slideIndex = n);
+  function plusSlides() {
+    showSlides(slideIndex += 1);
+    upload(data_uri);
   }
 
   function showSlides(n) {
+    if (n == 1) setWebcam(1);
+    else if (n == 2) setWebcam(2);
     var i;
     var slides = document.getElementsByClassName("mySlides");
-    var dots = document.getElementsByClassName("dot");
     if (n > slides.length) { slideIndex = 1 }
     if (n < 1) { slideIndex = 3 }
     for (i = 0; i < slides.length; i++) {
       slides[i].style.display = "none";
     }
-    for (i = 0; i < dots.length; i++) {
-      dots[i].className = dots[i].className.replace(" active", "");
-    }
     slides[slideIndex - 1].style.display = "block";
-    dots[slideIndex - 1].className += " active";
   }
-</script>
-
-<script>
-  // CAMERA SETTINGS.
-  Webcam.set({
-    width: 850,
-    height: 480,
-    image_format: 'jpeg',
-    jpeg_quality: 100
-  });
-  Webcam.attach('#camera');
 
   // SHOW THE SNAPSHOT.
-  takeSnapShot = function () {
+  takeSnapShot = function (stepNumber) {
     Webcam.snap(function (data_uri) {
-      document.getElementById('snapShot').innerHTML =
-        '<img src="' + data_uri + '" width="850px" height="480px" />';
-
-      upload(data_uri);
+      document.getElementById('camera' + stepNumber).innerHTML = '<img src="' + data_uri + '" width="850px" height="480px" />';
+      document.getElementById('captureButton' + stepNumber).style.display = "none";
+      document.getElementById('retry' + stepNumber).style.display = "block";
+      window.data_uri = data_uri;
     });
   }
 
-
+  retry = function (stepNumber) {
+    Webcam.attach('#camera' + stepNumber);
+    document.getElementById('captureButton' + stepNumber).style.display = "block";
+    document.getElementById('retry' + stepNumber).style.display = "none";
+  }
 
   function upload(data_uri) {
     var url = "camera";
